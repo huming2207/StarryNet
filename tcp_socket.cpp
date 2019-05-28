@@ -1,5 +1,6 @@
 #include <lwip/netdb.h>
 #include <esp_log.h>
+#include <arpa/inet.h>
 #include "tcp_socket.hpp"
 
 #include "socket_utils.hpp"
@@ -11,24 +12,22 @@ using namespace server;
 int tcp_socket::connect()
 {
     struct sockaddr_in remote_ip = {};
-    struct sockaddr_in6 remote_ip6 = {};
     struct timeval recv_tv = {};
     struct timeval send_tv = {};
 
     bzero(&remote_ip, sizeof(struct sockaddr_in));
 
-    // Try treat the address as domain name first. If fails, try IPv4 or v6
+    // Try treat the address as domain name first. If fails, try IPv4
     if (resolve_dns(host, &remote_ip) < 0) {
         return -1;
     }
 
-    // If it's IPv6, then it must have ":"...
-    bool is_ipv6 = strstr(host, ":") != nullptr;
-    if (inet_pton(is_ipv6 ? AF_INET6 : AF_INET, host, &remote_ip.sin_addr) != 1) return -1;
+    if (inet_pton(AF_INET, host, &remote_ip.sin_addr) != 1) return -1;
+
 
     // Create master socket
     ESP_LOGD(TAG, "Creating TCP socket...");
-    if((master_fd = socket(is_ipv6 ? PF_INET6 : PF_INET, SOCK_STREAM, 0)) < 0) {
+    if((master_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
         ESP_LOGE(TAG, "Failed to create TCP socket!");
         return -1;
     }
@@ -41,6 +40,7 @@ int tcp_socket::connect()
 
     ESP_LOGD(TAG, "Connecting to server: %s:%d, Socket FD: %d...",
              ipaddr_ntoa((const ip_addr_t*)&remote_ip.sin_addr.s_addr), port, master_fd);
+
     if (::connect(master_fd, (struct sockaddr *)(&remote_ip), sizeof(struct sockaddr)) != 0) {
         close(master_fd);
         master_fd = -1;

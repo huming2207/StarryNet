@@ -16,6 +16,7 @@ namespace server
             friend class tcp_socket_builder;
             static int resolve_dns(const char *host, struct sockaddr_in* sockaddr);
             int connect();
+            int serve();
 
         private:
             tcp_socket() = default;

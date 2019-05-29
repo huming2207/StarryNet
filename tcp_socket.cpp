@@ -50,6 +50,11 @@ int tcp_socket::connect()
     return 0;
 }
 
+int tcp_socket::serve()
+{
+
+}
+
 int tcp_socket::resolve_dns(const char *host, struct sockaddr_in *sockaddr)
 {
     struct hostent *he = nullptr;
@@ -58,19 +63,19 @@ int tcp_socket::resolve_dns(const char *host, struct sockaddr_in *sockaddr)
     he = gethostbyname(host);
 
     if (he == nullptr) {
-        return ESP_FAIL;
+        return -1;
     }
 
     addr_list = (struct in_addr **)he->h_addr_list;
 
     if (addr_list[0] == nullptr) {
-        return ESP_FAIL;
+        return -1;
     }
 
     sockaddr->sin_family = he->h_addrtype; // IPv4 or IPv6??
 
     memcpy(&sockaddr->sin_addr, addr_list[0], sizeof(sockaddr->sin_addr));
-    return ESP_OK;
+    return 0;
 }
 
 tcp_socket_builder &tcp_socket_builder::set_send_timeout(time_t val)

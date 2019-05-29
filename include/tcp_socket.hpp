@@ -14,7 +14,7 @@ namespace server
     {
         public:
             friend class tcp_socket_builder;
-            static int resolve_dns(const char *host, struct sockaddr_in* sockaddr);
+            static int resolve_dns(const char *host, struct sockaddr_in6* sockaddr);
             int connect();
             int serve();
 
@@ -26,7 +26,7 @@ namespace server
             uint16_t port = 0;
 
         private:
-            int master_fd = -1;
+            int listen_fd = -1;
 
     };
 

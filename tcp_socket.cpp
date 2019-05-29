@@ -11,23 +11,23 @@ using namespace server;
 
 int tcp_socket::connect()
 {
-    struct sockaddr_in remote_ip = {};
+    struct sockaddr_in6 remote_ip = {};
     struct timeval recv_tv = {};
     struct timeval send_tv = {};
 
-    bzero(&remote_ip, sizeof(struct sockaddr_in));
+    bzero(&remote_ip, sizeof(struct sockaddr_in6));
 
     // Try treat the address as domain name first. If fails, try IPv4
     if (resolve_dns(host, &remote_ip) < 0) {
         return -1;
     }
 
-    if (inet_pton(AF_INET, host, &remote_ip.sin_addr) != 1) return -1;
+    if (inet_pton(AF_INET6, host, &remote_ip.sin6_addr) != 1) return -1;
 
 
     // Create master socket
     ESP_LOGD(TAG, "Creating TCP socket...");
-    if((master_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+    if((listen_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
         ESP_LOGE(TAG, "Failed to create TCP socket!");
         return -1;
     }
@@ -35,15 +35,15 @@ int tcp_socket::connect()
     // Set timeout
     socket_utils::millisec_to_timeval(recv_timeout, &recv_tv);
     socket_utils::millisec_to_timeval(send_timeout, &send_tv);
-    setsockopt(master_fd, SOL_SOCKET, SO_RCVTIMEO, &recv_tv, sizeof(recv_tv));
-    setsockopt(master_fd, SOL_SOCKET, SO_SNDTIMEO, &send_tv, sizeof(send_tv));
+    setsockopt(listen_fd, SOL_SOCKET, SO_RCVTIMEO, &recv_tv, sizeof(recv_tv));
+    setsockopt(listen_fd, SOL_SOCKET, SO_SNDTIMEO, &send_tv, sizeof(send_tv));
 
     ESP_LOGD(TAG, "Connecting to server: %s:%d, Socket FD: %d...",
-             ipaddr_ntoa((const ip_addr_t*)&remote_ip.sin_addr.s_addr), port, master_fd);
+             ipaddr_ntoa((const ip_addr_t*)&remote_ip.sin6_addr.un.u32_addr), port, listen_fd);
 
-    if (::connect(master_fd, (struct sockaddr *)(&remote_ip), sizeof(struct sockaddr)) != 0) {
-        close(master_fd);
-        master_fd = -1;
+    if (::connect(listen_fd, (struct sockaddr *)(&remote_ip), sizeof(struct sockaddr)) != 0) {
+        close(listen_fd);
+        listen_fd = -1;
         return -1;
     }
 
@@ -55,7 +55,7 @@ int tcp_socket::serve()
 
 }
 
-int tcp_socket::resolve_dns(const char *host, struct sockaddr_in *sockaddr)
+int tcp_socket::resolve_dns(const char *host, struct sockaddr_in6 *sockaddr)
 {
     struct hostent *he = nullptr;
     struct in_addr **addr_list = nullptr;
@@ -72,9 +72,9 @@ int tcp_socket::resolve_dns(const char *host, struct sockaddr_in *sockaddr)
         return -1;
     }
 
-    sockaddr->sin_family = he->h_addrtype; // IPv4 or IPv6??
+    sockaddr->sin6_family = AF_INET6;
 
-    memcpy(&sockaddr->sin_addr, addr_list[0], sizeof(sockaddr->sin_addr));
+    memcpy(&sockaddr->sin6_addr, addr_list[0], sizeof(sockaddr->sin6_addr));
     return 0;
 }
 

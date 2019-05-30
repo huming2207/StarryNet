@@ -1,0 +1,3 @@
+#pragma once
+
+#define STARRYNET_HTTPD_SERVER_STACK_SIZE 10240

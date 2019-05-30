@@ -1,28 +1,30 @@
+#include <errno.h>
 #include <lwip/netdb.h>
 #include <esp_log.h>
 #include <arpa/inet.h>
-#include "tcp_socket.hpp"
+#include "tcp_client.hpp"
 
 #include "socket_utils.hpp"
+#include "starrynet_config.hpp"
 
 #define TAG "tcp_socket"
 
-using namespace server;
+using namespace starrynet;
 
-int tcp_socket::connect()
+int tcp_client::connect()
 {
-    struct sockaddr_in6 remote_ip = {};
+    struct sockaddr_in6 remote_addr = {};
     struct timeval recv_tv = {};
     struct timeval send_tv = {};
 
-    bzero(&remote_ip, sizeof(struct sockaddr_in6));
+    bzero(&remote_addr, sizeof(struct sockaddr_in6));
 
     // Try treat the address as domain name first. If fails, try IPv4
-    if (resolve_dns(host, &remote_ip) < 0) {
+    if (resolve_dns(host, &remote_addr) < 0) {
         return -1;
     }
 
-    if (inet_pton(AF_INET6, host, &remote_ip.sin6_addr) != 1) return -1;
+    if (inet_pton(AF_INET6, host, &remote_addr.sin6_addr) != 1) return -1;
 
 
     // Create master socket
@@ -39,9 +41,9 @@ int tcp_socket::connect()
     setsockopt(listen_fd, SOL_SOCKET, SO_SNDTIMEO, &send_tv, sizeof(send_tv));
 
     ESP_LOGD(TAG, "Connecting to server: %s:%d, Socket FD: %d...",
-             ipaddr_ntoa((const ip_addr_t*)&remote_ip.sin6_addr.un.u32_addr), port, listen_fd);
+             ipaddr_ntoa((const ip_addr_t*)&remote_addr.sin6_addr.un.u32_addr), port, listen_fd);
 
-    if (::connect(listen_fd, (struct sockaddr *)(&remote_ip), sizeof(struct sockaddr)) != 0) {
+    if (::connect(listen_fd, (struct sockaddr *)(&remote_addr), sizeof(struct sockaddr)) != 0) {
         close(listen_fd);
         listen_fd = -1;
         return -1;
@@ -50,12 +52,7 @@ int tcp_socket::connect()
     return 0;
 }
 
-int tcp_socket::serve()
-{
-
-}
-
-int tcp_socket::resolve_dns(const char *host, struct sockaddr_in6 *sockaddr)
+int tcp_client::resolve_dns(const char *host, struct sockaddr_in6 *sockaddr)
 {
     struct hostent *he = nullptr;
     struct in_addr **addr_list = nullptr;
@@ -78,31 +75,31 @@ int tcp_socket::resolve_dns(const char *host, struct sockaddr_in6 *sockaddr)
     return 0;
 }
 
-tcp_socket_builder &tcp_socket_builder::set_send_timeout(time_t val)
+tcp_client_builder &tcp_client_builder::set_send_timeout(time_t val)
 {
     socket.send_timeout = val;
     return *this;
 }
 
-tcp_socket_builder &tcp_socket_builder::set_recv_timeout(time_t val)
+tcp_client_builder &tcp_client_builder::set_recv_timeout(time_t val)
 {
     socket.recv_timeout = val;
     return *this;
 }
 
-tcp_socket_builder &tcp_socket_builder::set_port(uint16_t val)
+tcp_client_builder &tcp_client_builder::set_port(uint16_t val)
 {
     socket.port = val;
     return *this;
 }
 
-tcp_socket_builder &tcp_socket_builder::set_host(const std::string &val)
+tcp_client_builder &tcp_client_builder::set_host(const std::string &val)
 {
     socket.host = strdup(val.c_str());
     return *this;
 }
 
-tcp_socket &tcp_socket_builder::build()
+tcp_client &tcp_client_builder::build()
 {
     return socket;
 }

@@ -1,3 +1,5 @@
+#include <cerrno>
+
 #include <esp_log.h>
 
 #include "tcp_server.hpp"
@@ -11,16 +13,8 @@ using namespace starrynet;
 int tcp_server::serve()
 {
     if(serve_init() < 1) return -1;
-    auto serve_task = [](void* ptr) {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wmissing-noreturn"
-        while(true) {
 
-        }
-#pragma clang diagnostic pop
-    };
-
-    xTaskCreatePinnedToCore(serve_task,
+    xTaskCreatePinnedToCore(&tcp_server::serve_worker,
                             "starryhttpd",
                             STARRYNET_HTTPD_SERVER_STACK_SIZE,
                             this,
@@ -30,6 +24,60 @@ int tcp_server::serve()
 
 }
 
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-noreturn"
+void tcp_server::serve_worker(void *ptr)
+{
+    // Pass in the class instance
+    auto server = reinterpret_cast<tcp_server*>(ptr);
+    if(!server) return;
+
+    fd_set read_fds;
+    int max_fd, new_fd = 0;
+    size_t addr_len = sizeof(server->serv_addr);
+
+    server->client_sockets.fill(0);
+
+    while(true) {
+
+        // Clear socket set
+        FD_ZERO(&read_fds);
+
+        // Add master socket
+        FD_SET(server->listen_fd, &read_fds);
+        max_fd = server->listen_fd;
+
+        // Add child sockets to FD set
+        for(auto socket : server->client_sockets) {
+            if(socket > 0) FD_SET(socket, &read_fds);
+            if(socket > max_fd) max_fd = socket;
+        }
+
+        // Perform select()
+        int ret = select(max_fd + 1 , &read_fds , nullptr , nullptr , nullptr);
+        if(ret < 0) {
+            ESP_LOGE(TAG, "Failed to select(): %d", errno);
+            return;
+        }
+
+        if(FD_ISSET(server->listen_fd, &read_fds)) {
+            if((new_fd = accept(server->listen_fd,
+                    (struct sockaddr*)&server->serv_addr, (socklen_t*)&addr_len)) < 0) {
+                ESP_LOGE(TAG, "Failed to accept(): %d", new_fd);
+                return;
+            }
+
+            ESP_LOGD(TAG, "Got connection, socket %d", new_fd);
+
+            // TODO: send()
+        }
+
+        // TODO: read()
+    }
+}
+#pragma clang diagnostic pop
+
 int tcp_server::serve_init()
 {
     if ((listen_fd = socket(PF_INET6, SOCK_STREAM, 0)) < 0) {
@@ -38,7 +86,6 @@ int tcp_server::serve_init()
     }
 
     struct in6_addr inaddr_any = IN6ADDR_ANY_INIT;
-    struct sockaddr_in6 serv_addr = {};
     bzero(&serv_addr, sizeof(struct sockaddr_in6));
 
     serv_addr.sin6_family  = PF_INET6;

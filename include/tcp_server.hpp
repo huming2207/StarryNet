@@ -1,11 +1,14 @@
 #pragma once
 
 #include <string>
+#include <array>
 #include <cstdint>
 #include <cstring>
 #include <ctime>
 
 #include <sys/socket.h>
+
+#include "../starrynet_config.hpp"
 
 namespace starrynet
 {
@@ -29,11 +32,13 @@ namespace starrynet
             uint16_t server_task_priority = tskIDLE_PRIORITY + 5;
 
             int listen_fd = -1;
+            struct sockaddr_in6 serv_addr = {};
 
+            std::array<int, STARRYNET_HTTPD_SERVER_STACK_SIZE> client_sockets;
 
         private:
             int serve_init();
-            int serve_worker(void *ptr);
+            static void serve_worker(void *ptr);
     };
 
     class tcp_server_builder
@@ -49,4 +54,5 @@ namespace starrynet
         private:
             tcp_server server;
     };
+
 }

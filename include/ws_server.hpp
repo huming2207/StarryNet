@@ -33,7 +33,8 @@ namespace starrynet
             int listen_fd = -1;
             struct sockaddr_in6 serv_addr = {};
 
-            std::array<int, STARRYNET_HTTPD_SERVER_STACK_SIZE> client_sockets;
+            std::array<int, STARRYNET_SERVER_MAX_CLIENT> client_sockets;
+            std::array<uint8_t, STARRYNET_WS_BUF_SIZE> buffer;
 
         private:
             int serve_init();

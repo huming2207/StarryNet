@@ -17,7 +17,7 @@ int ws_server::serve()
 
     xTaskCreatePinnedToCore(&ws_server::serve_worker,
                             "starryhttpd",
-                            STARRYNET_HTTPD_SERVER_STACK_SIZE,
+                            STARRYNET_SERVER_STACK_SIZE,
                             this,
                             server_task_priority,
                             &server_task_handle,
@@ -49,9 +49,9 @@ void ws_server::serve_worker(void *ptr)
         max_fd = server->listen_fd;
 
         // Add child sockets to FD set
-        for(auto socket : server->client_sockets) {
-            if(socket > 0) FD_SET(socket, &read_fds);
-            if(socket > max_fd) max_fd = socket;
+        for(auto fd : server->client_sockets) {
+            if(fd > 0) FD_SET(fd, &read_fds);
+            if(fd > max_fd) max_fd = fd;
         }
 
         // Perform select()
@@ -61,6 +61,7 @@ void ws_server::serve_worker(void *ptr)
             return;
         }
 
+        // Accept new clients, if exists and possible
         if(FD_ISSET(server->listen_fd, &read_fds)) {
             if((new_fd = accept(server->listen_fd,
                     (struct sockaddr*)&server->serv_addr, (socklen_t*)&addr_len)) < 0) {
@@ -69,11 +70,38 @@ void ws_server::serve_worker(void *ptr)
             }
 
             ESP_LOGD(TAG, "Got connection, socket %d", new_fd);
+            bool is_client_added = false;
+            for(int& client_fd : server->client_sockets) {
+                if(client_fd == 0) {
+                    client_fd = new_fd;
+                    ESP_LOGD(TAG, "Added to client socket array");
+                    is_client_added = true;
+                    break;
+                }
+            }
 
-            // TODO: send()
+            if(!is_client_added) {
+                ESP_LOGE(TAG, "Failed to find a empty slot for the new client!");
+                return;
+            }
         }
 
-        // TODO: read()
+        // Or, perform IO operations
+        for(int& client_fd : server->client_sockets) {
+            if(FD_ISSET(client_fd, &read_fds)) {
+                server->buffer.fill(0);
+                ret = read(client_fd, server->buffer.data(), STARRYNET_WS_BUF_SIZE);
+                if(ret < 0) {
+                    ESP_LOGE(TAG, "Failed to perform read(): %d", errno);
+                } else if(ret == 0) {
+                    ESP_LOGD(TAG, "Client %d left", client_fd);
+                    close(client_fd);
+                    client_fd = 0;
+                }
+
+                // TODO: send() after buffer is parsed
+            }
+        }
     }
 }
 #pragma clang diagnostic pop

@@ -12,16 +12,15 @@
 
 namespace starrynet
 {
-    class tcp_server_builder;
-    class tcp_server
+    class ws_server_builder;
+    class ws_server
     {
         public:
-            friend class tcp_server_builder;
+            friend class ws_server_builder;
             int serve();
 
-
         private:
-            tcp_server() = default;
+            ws_server() = default;
             time_t send_timeout = 30;
             time_t recv_timeout = 30;
             uint16_t port = 0;
@@ -41,18 +40,18 @@ namespace starrynet
             static void serve_worker(void *ptr);
     };
 
-    class tcp_server_builder
+    class ws_server_builder
     {
         public:
-            tcp_server_builder& set_send_timeout(time_t val);
-            tcp_server_builder& set_recv_timeout(time_t val);
-            tcp_server_builder& set_port(uint16_t val);
-            tcp_server_builder& set_backlog_conn(uint16_t val);
-            tcp_server_builder& set_task_priority(uint16_t val);
-            tcp_server& build();
+        ws_server_builder& set_send_timeout(time_t val);
+        ws_server_builder& set_recv_timeout(time_t val);
+        ws_server_builder& set_port(uint16_t val);
+        ws_server_builder& set_backlog_conn(uint16_t val);
+        ws_server_builder& set_task_priority(uint16_t val);
+            ws_server& build();
 
         private:
-            tcp_server server;
+            ws_server server;
     };
 
 }

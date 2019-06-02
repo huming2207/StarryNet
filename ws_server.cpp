@@ -1,8 +1,9 @@
 #include <cerrno>
+#include <regex>
 
 #include <esp_log.h>
 
-#include "tcp_server.hpp"
+#include "ws_server.hpp"
 #include "starrynet_config.hpp"
 
 
@@ -10,11 +11,11 @@
 
 using namespace starrynet;
 
-int tcp_server::serve()
+int ws_server::serve()
 {
     if(serve_init() < 1) return -1;
 
-    xTaskCreatePinnedToCore(&tcp_server::serve_worker,
+    xTaskCreatePinnedToCore(&ws_server::serve_worker,
                             "starryhttpd",
                             STARRYNET_HTTPD_SERVER_STACK_SIZE,
                             this,
@@ -24,13 +25,12 @@ int tcp_server::serve()
 
 }
 
-
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
-void tcp_server::serve_worker(void *ptr)
+void ws_server::serve_worker(void *ptr)
 {
     // Pass in the class instance
-    auto server = reinterpret_cast<tcp_server*>(ptr);
+    auto server = reinterpret_cast<ws_server*>(ptr);
     if(!server) return;
 
     fd_set read_fds;
@@ -78,7 +78,7 @@ void tcp_server::serve_worker(void *ptr)
 }
 #pragma clang diagnostic pop
 
-int tcp_server::serve_init()
+int ws_server::serve_init()
 {
     if ((listen_fd = socket(PF_INET6, SOCK_STREAM, 0)) < 0) {
         ESP_LOGE(TAG, "Failed to create socket: %d", errno);
@@ -117,37 +117,37 @@ int tcp_server::serve_init()
     return ret;
 }
 
-tcp_server_builder& tcp_server_builder::set_send_timeout(time_t val)
+ws_server_builder& ws_server_builder::set_send_timeout(time_t val)
 {
     server.send_timeout = val;
     return *this;
 }
 
-tcp_server_builder& tcp_server_builder::set_recv_timeout(time_t val)
+ws_server_builder& ws_server_builder::set_recv_timeout(time_t val)
 {
     server.recv_timeout = val;
     return *this;
 }
 
-tcp_server_builder& tcp_server_builder::set_port(uint16_t val)
+ws_server_builder& ws_server_builder::set_port(uint16_t val)
 {
     server.port = val;
     return *this;
 }
 
-tcp_server_builder &tcp_server_builder::set_task_priority(uint16_t val)
+ws_server_builder &ws_server_builder::set_task_priority(uint16_t val)
 {
     server.server_task_priority = val;
     return *this;
 }
 
-tcp_server_builder& tcp_server_builder::set_backlog_conn(uint16_t val)
+ws_server_builder& ws_server_builder::set_backlog_conn(uint16_t val)
 {
     server.backlog_conn = val;
     return *this;
 }
 
-tcp_server& tcp_server_builder::build()
+ws_server& ws_server_builder::build()
 {
     return server;
 }

@@ -25,9 +25,47 @@ std::vector<std::string> http_parser::split_str(const std::string& text, const s
     return tokens;
 }
 
-std::map<std::string, std::string> http_parser::parse_header(std::vector<std::string> &header_lines)
+http_result http_parser::parse_header(std::vector<std::string> &header_lines)
 {
+    http_result result{};
     std::map<std::string, std::string> headers;
+    if(header_lines.size() < 2) return result;
 
+    const std::vector<std::string> first_line = split_str(header_lines[0], " ");
+    for(auto& pattern : first_line) {
+        auto ver_map_it = version_map.find(pattern);
+        if(ver_map_it != version_map.end()) {
+            result.version = ver_map_it->second; continue;
+        }
+
+        auto method_map_it = method_map.find(pattern);
+        if(method_map_it != method_map.end()) {
+            result.method = method_map_it->second; continue;
+        }
+    }
+
+
+    for(auto& line : header_lines) {
+        const auto& curr_header = split_str(line, ": ");
+        if(curr_header.size() < 2) break;
+        headers[curr_header[0]] = curr_header[1];
+    }
+
+    return {
+        .headers = headers
+    };
 }
 
+const std::map<std::string, http_version> http_parser::version_map  = {
+        { "HTTP/1.0", HTTP_1_0 },
+        { "HTTP/1.1", HTTP_1_1 },
+        { "HTTP/2", HTTP_2 }
+};
+
+const std::map<std::string, http_method> http_parser::method_map = {
+        { "GET", HTTP_GET },
+        { "POST", HTTP_POST },
+        { "DELETE", HTTP_DELETE },
+        { "PATCH", HTTP_PATCH },
+        { "PUT", HTTP_PUT }
+};

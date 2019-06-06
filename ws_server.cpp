@@ -6,7 +6,6 @@
 #include "ws_server.hpp"
 #include "starrynet_config.hpp"
 
-
 #define TAG "tcp_server"
 
 using namespace starrynet;
@@ -89,22 +88,34 @@ void ws_server::serve_worker(void *ptr)
         // Or, perform IO operations
         for(int& client_fd : server->client_sockets) {
             if(FD_ISSET(client_fd, &read_fds)) {
-                server->buffer.fill(0);
-                ret = read(client_fd, server->buffer.data(), STARRYNET_WS_BUF_SIZE);
-                if(ret < 0) {
-                    ESP_LOGE(TAG, "Failed to perform read(): %d", errno);
-                } else if(ret == 0) {
-                    ESP_LOGD(TAG, "Client %d left", client_fd);
-                    close(client_fd);
-                    client_fd = 0;
-                }
-
+                server->serve_rx(client_fd);
                 // TODO: send() after buffer is parsed
             }
         }
     }
 }
 #pragma clang diagnostic pop
+
+void ws_server::serve_rx(int& client_fd)
+{
+    buffer.fill(0);
+    int ret = read(client_fd, buffer.data(), STARRYNET_WS_BUF_SIZE);
+    if(ret < 0) {
+        ESP_LOGE(TAG, "Failed to perform read(): %d", errno);
+        return;
+    } else if(ret == 0) {
+        ESP_LOGD(TAG, "Client %d left", client_fd);
+        close(client_fd);
+        client_fd = 0;
+        return;
+    }
+
+}
+
+void ws_server::serve_tx(int& client_fd, size_t len)
+{
+
+}
 
 int ws_server::serve_init()
 {

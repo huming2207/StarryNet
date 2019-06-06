@@ -7,6 +7,7 @@
 #include <ctime>
 
 #include <sys/socket.h>
+#include "../http_parser/http_parser.h"
 
 #include "../starrynet_config.hpp"
 
@@ -38,6 +39,9 @@ namespace starrynet
 
         private:
             int serve_init();
+            void serve_tx(int& client_fd, size_t len);
+            void serve_rx(int& client_fd);
+
             static void serve_worker(void *ptr);
     };
 
@@ -49,7 +53,7 @@ namespace starrynet
         ws_server_builder& set_port(uint16_t val);
         ws_server_builder& set_backlog_conn(uint16_t val);
         ws_server_builder& set_task_priority(uint16_t val);
-            ws_server& build();
+        ws_server& build();
 
         private:
             ws_server server;

@@ -25,23 +25,23 @@ enum http_version
 
 struct http_result
 {
-    const std::map<std::string, std::string> headers;
+    std::map<std::string_view, std::string_view> headers;
     http_method method;
-    const std::string endpoint;
+    std::string_view endpoint;
     http_version version;
 };
 
 class http_parser
 {
     public:
-        http_parser(const std::string &_http_trasct);
+        explicit http_parser(const std::string_view &_http_trasct);
         http_parser(const char *str, size_t len);
-        http_result parse_header(std::vector<std::string>& header_lines);
+        http_result parse_request_hander(std::vector<std::string> &header_lines);
 
     private:
-        std::vector<std::string> split_str(const std::string& text, const std::string& delims);
-        std::string http_trasct;
-        static const std::map<std::string, http_method> method_map;
-        static const std::map<std::string, http_version> version_map;
+        std::vector<std::string_view> split_str(const std::string& text, const std::string& delims);
+        std::string_view http_trasct;
+        static const std::map<std::string_view, http_method> method_map;
+        static const std::map<std::string_view, http_version> version_map;
 };
 

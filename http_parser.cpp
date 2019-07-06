@@ -1,4 +1,5 @@
 #include <string_view>
+#include <esp_err.h>
 #include "http_parser.hpp"
 
 http_parser::http_parser(const std::string_view &_http_trasct)
@@ -11,7 +12,7 @@ http_parser::http_parser(const char *str, size_t len)
     http_trasct = std::string_view(str, len);
 }
 
-std::vector<std::string_view> http_parser::split_str(const std::string& text, const std::string& delims)
+std::vector<std::string_view> http_parser::split_str(const std::string_view& text, const std::string& delims)
 {
     // Ref: https://stackoverflow.com/a/7408245
     std::vector<std::string_view> tokens;
@@ -26,35 +27,45 @@ std::vector<std::string_view> http_parser::split_str(const std::string& text, co
     return tokens;
 }
 
-http_result http_parser::parse_request_hander(std::vector<std::string> &header_lines)
+esp_err_t http_parser::parse_request_hander(http_result &result_out)
 {
-    http_result result{};
+    // Take substring of the header part only - i.e. the string between start to the blank line
+    auto header_part = http_trasct.substr(0, http_trasct.find("\r\n\r\n", 0));
+
+    // Split string to vector of lines
+    auto header_lines = split_str(header_part, "\r\n");
+    if(header_lines.empty()) return ESP_ERR_INVALID_SIZE;
+
+    // Read the first line, e.g. "GET /whatever.htm HTTP/1.1"
+    const auto first_line = split_str(header_lines[0], " ");
+    if(first_line.size() < 2) return ESP_ERR_INVALID_SIZE;
+
+    result_out.method = method_map.at(first_line[0]);
+    result_out.endpoint = first_line[1];
+    result_out.version = first_line.size() < 3 ? HTTP_1_0 : version_map.at(first_line[2]);
+    header_lines.erase(header_lines.begin());
+
+    // The rest of the header will be kept in the map
     std::map<std::string_view, std::string_view> headers;
-    if(header_lines.size() < 2) return result;
+    for(auto& curr_item : header_lines) {
+        auto colon_idx = curr_item.find(": ");
+        auto item_key = curr_item.substr(0, colon_idx);
+        auto item_val = curr_item.substr(colon_idx + 1);
 
-    const std::vector<std::string_view> first_line = split_str(header_lines[0], " ");
-    for(auto& pattern : first_line) {
-        auto ver_map_it = version_map.find(pattern);
-        if(ver_map_it != version_map.end()) {
-            result.version = ver_map_it->second; continue;
-        }
+        // If there's a "[Cc]onnection: [Uu]pgrade", then it must be a WebSocket upgrade request
+        result_out.ws_upgrade = (item_key == "Connection" || item_key == "connection")
+                                && (item_val == "upgrade" || item_val == "Upgrade");
 
-        auto method_map_it = method_map.find(pattern);
-        if(method_map_it != method_map.end()) {
-            result.method = method_map_it->second; continue;
-        }
+        headers[item_key] = item_val; // Add into header map
     }
 
+    if(headers.empty()) return ESP_ERR_INVALID_SIZE;
+    result_out.headers = std::move(headers);
 
-    for(auto& line : header_lines) {
-        const auto& curr_header = split_str(line, ": ");
-        if(curr_header.size() < 2) break;
-        headers[curr_header[0]] = curr_header[1];
-    }
-
-    result.headers = std::move(headers);
-    return result;
+    return ESP_OK;
 }
+
+
 
 const std::map<std::string_view, http_version> http_parser::version_map  = {
         { "HTTP/1.0", HTTP_1_0 },

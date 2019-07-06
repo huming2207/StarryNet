@@ -50,16 +50,13 @@ esp_err_t http_parser::parse_request_hander(http_result &result_out)
     for(auto& curr_item : header_lines) {
         auto colon_idx = curr_item.find(": ");
         auto item_key = curr_item.substr(0, colon_idx);
-        auto item_val = curr_item.substr(colon_idx + 1);
-
-        // If there's a "[Cc]onnection: [Uu]pgrade", then it must be a WebSocket upgrade request
-        result_out.ws_upgrade = (item_key == "Connection" || item_key == "connection")
-                                && (item_val == "upgrade" || item_val == "Upgrade");
+        auto item_val = curr_item.substr(colon_idx + 2, curr_item.find("\r\n", colon_idx + 2));
 
         headers[item_key] = item_val; // Add into header map
     }
 
     if(headers.empty()) return ESP_ERR_INVALID_SIZE;
+    if(headers["Upgrade"] == "websocket" || headers["upgrade"] == "websocket") result_out.ws_upgrade = true;
     result_out.headers = std::move(headers);
 
     return ESP_OK;

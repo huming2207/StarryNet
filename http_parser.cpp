@@ -2,6 +2,9 @@
 #include <esp_err.h>
 #include "http_parser.hpp"
 
+using namespace snet;
+using namespace snet::http_def;
+
 http_parser::http_parser(const std::string_view &_http_trasct)
 {
     http_trasct = _http_trasct;
@@ -27,7 +30,7 @@ std::vector<std::string_view> http_parser::split_str(const std::string_view& tex
     return tokens;
 }
 
-esp_err_t http_parser::parse_request_hander(http_result &result_out)
+esp_err_t http_parser::parse_header(http_def::header &result_out)
 {
     // Take substring of the header part only - i.e. the string between start to the blank line
     auto header_part = http_trasct.substr(0, http_trasct.find("\r\n\r\n", 0));
@@ -64,13 +67,13 @@ esp_err_t http_parser::parse_request_hander(http_result &result_out)
 
 
 
-const std::map<std::string_view, http_version> http_parser::version_map  = {
+const std::map<std::string_view, version> http_parser::version_map  = {
         { "HTTP/1.0", HTTP_1_0 },
         { "HTTP/1.1", HTTP_1_1 },
         { "HTTP/2", HTTP_2 }
 };
 
-const std::map<std::string_view, http_method> http_parser::method_map = {
+const std::map<std::string_view, method> http_parser::method_map = {
         { "GET", HTTP_GET },
         { "POST", HTTP_POST },
         { "DELETE", HTTP_DELETE },

@@ -4,6 +4,8 @@
 
 #include "ws_parser.hpp"
 
+using namespace snet;
+
 ws_parser::ws_parser(const uint8_t *buf, size_t len)
 {
 

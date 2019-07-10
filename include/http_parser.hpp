@@ -25,13 +25,14 @@ namespace snet
             HTTP_2 = 2
         };
 
-        struct header
+        struct result
         {
             std::map<std::string_view, std::string_view> headers;
             method method;
             std::string_view endpoint;
             version version;
             bool ws_upgrade;
+            std::string_view body;
         };
     }
 
@@ -41,7 +42,7 @@ namespace snet
         public:
             explicit http_parser(const std::string_view &_http_trasct);
             http_parser(const char *str, size_t len);
-            esp_err_t parse_header(http_def::header &result_out);
+            esp_err_t parse_header(http_def::result &result_out);
 
         private:
             std::vector<std::string_view> split_str(const std::string_view & text, const std::string& delims);

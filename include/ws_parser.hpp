@@ -17,31 +17,33 @@ namespace snet
             PONG                    = 0xA
         } opcode;
 
-        typedef struct __attribute__((packed)) {
+        struct __attribute__((packed)) header_raw {
             bool fin:1;
             uint8_t reserved:3;
             opcode type:4;
             bool masked:1;
             uint8_t payload_len:7;
             uint8_t extras[12];
-        } header_raw;
+        };
 
-        typedef struct {
+        struct result {
             bool fin;
             opcode type;
             bool masked;
             uint64_t payload_len;
             uint32_t masking_key;
-        } header;
+            uint8_t *payload_ptr;
+        };
     }
 
     class ws_parser
     {
         public:
-            ws_parser(const uint8_t *buf, size_t len);
-            esp_err_t parse_header(ws_def::header& header_opt);
+            ws_parser(uint8_t *buf, size_t len);
+            esp_err_t parse_header(ws_def::result& result);
 
         private:
-
+            uint8_t *buffer_ptr;
+            size_t buffer_len;
     };
 }

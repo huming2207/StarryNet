@@ -12,6 +12,8 @@ ws_parser::ws_parser(uint8_t *buf, size_t len) : buffer_ptr(buf), buffer_len(len
 
 esp_err_t ws_parser::parse_header(ws_def::result &result)
 {
+    if(buffer_ptr == nullptr || buffer_len < 2) return ESP_ERR_INVALID_STATE;
+
     ws_def::header_raw header{};
     std::memcpy(&header, buffer_ptr, sizeof(ws_def::header_raw));
     buffer_ptr += 2;
@@ -67,6 +69,9 @@ esp_err_t ws_parser::parse_header(ws_def::result &result)
             buffer_ptr[curr_idx] = buffer_ptr[curr_idx] ^ mask_key[curr_idx % 4];
         }
     }
+
+    result.payload_ptr = buffer_ptr;
+    result.payload_len = buffer_len;
 
     return ESP_OK;
 }

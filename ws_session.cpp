@@ -11,8 +11,10 @@
 using namespace snet;
 
 
-ws_session::ws_session(tcp::socket _sock, std::function<void(std::error_code)> error_cb) :
-            sock(std::move(_sock)), error_handler_cb(std::move(error_cb))
+ws_session::ws_session(tcp::socket _sock,
+        std::function<void(std::error_code)> error_cb,
+        std::function<void(ws_def::request&, ws_session&)> request_cb) :
+            sock(std::move(_sock)), error_handler_cb(std::move(error_cb)), request_handler_cb(std::move(request_cb))
 {
 
 }
@@ -47,7 +49,11 @@ void ws_session::read_header()
                     read_mask_key();
                 }
 
-                // Finally, read payload buffer
+                // Read payload buffer
+                read_payload();
+
+                // Finally, call request handler
+                request_handler_cb(request, *this);
             });
 }
 

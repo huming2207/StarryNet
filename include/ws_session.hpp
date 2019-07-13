@@ -19,7 +19,9 @@ namespace snet
     class ws_session : public std::enable_shared_from_this<ws_session>
     {
         public:
-            ws_session(tcp::socket _sock, std::function<void(std::error_code)> error_cb);
+            ws_session(tcp::socket _sock,
+                    std::function<void(std::error_code)> error_cb,
+                    std::function<void(ws_def::request&, ws_session&)>);
 
         private:
             void read_header();
@@ -31,6 +33,7 @@ namespace snet
         private:
             tcp::socket sock;
             std::function<void(std::error_code)> error_handler_cb;
+            std::function<void(ws_def::request&, ws_session&)> request_handler_cb;
             ws_def::request request{};
             uint8_t mask_key[4] = { 0 };
     };

@@ -28,7 +28,7 @@ namespace snet
             PONG                    = 0xA
         } opcode;
 
-        struct __attribute__((packed)) header_raw {
+        struct __attribute__((packed)) header {
             bool fin:1;
             uint8_t reserved:3;
             opcode type:4;

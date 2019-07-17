@@ -9,8 +9,6 @@
 
 #include <asio.hpp>
 
-#include <ws_parser.hpp>
-
 #include "../starrynet_config.hpp"
 
 

@@ -1,34 +1,43 @@
+#include <utility>
+#include <http_parser.hpp>
+
 #include "http_session.hpp"
 
-std::istream &snet::http_session::read_until_crlf(std::istream &is, std::string &opt)
+
+snet::http_session::http_session(tcp::socket _sock, std::function<void(esp_err_t)> error_cb) :
+        sock(std::move(_sock)), error_handler_cb(std::move(error_cb))
 {
-    // Ref: https://stackoverflow.com/questions/6089231/getting-std-ifstream-to-handle-lf-cr-and-crlf
-    // Modify a bit to make it only stop at CRLF and EOF
-    opt.clear();
 
-    // The characters in the stream are read one-by-one using a std::streambuf.
-    // That is faster than reading them one-by-one using the std::istream.
-    // Code that uses streambuf this way must be guarded by a sentry object.
-    // The sentry object performs various tasks,
-    // such as thread synchronization and updating the stream state.
+}
 
-    std::istream::sentry setry(is, true);
-    std::streambuf* sbuf = is.rdbuf();
+void snet::http_session::read_header()
+{
+    auto self(shared_from_this());
 
-    for(;;) {
-        int c = sbuf->sbumpc();
-        switch (c) {
-            case '\r':
-                if(sbuf->sgetc() == '\n')
-                    sbuf->sbumpc();
-                return is;
-            case std::streambuf::traits_type::eof():
-                // Also handle the case when the last line has no line ending
-                if(opt.empty())
-                    is.setstate(std::ios::eofbit);
-                return is;
-            default:
-                opt += (char)c;
-        }
-    }
+    sock.async_read_some(asio::buffer(http_buf, 256),
+            [this, self](std::error_code err_code, size_t len)
+            {
+                if(err_code) {
+                    error_handler_cb(err_code.value());
+                    return;
+                }
+
+                // Header is longer than 256 bytes
+                if(http_buf[255] != '\0') {
+                    error_handler_cb(ESP_ERR_INVALID_SIZE);
+                    return;
+                }
+
+                // Parse header
+                std::string_view hdr_view(http_buf);
+                http_parser parser(hdr_view);
+
+                http_def::result result{};
+                auto ret = parser.parse_header(result);
+
+                if((ret != ESP_OK) {
+                    error_handler_cb(ret);
+                }
+
+            });
 }

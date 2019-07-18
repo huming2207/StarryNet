@@ -12,10 +12,12 @@ namespace snet
     class http_session : public std::enable_shared_from_this<http_session>
     {
         public:
-
+            http_session(tcp::socket _sock, std::function<void(esp_err_t)> err_cb);
+            void read_header();
         private:
+            char http_buf[256];
             tcp::socket sock;
-            std::istream& read_until_crlf(std::istream& is, std::string& opt);
+            std::function<void(esp_err_t)> error_handler_cb;
 
     };
 }

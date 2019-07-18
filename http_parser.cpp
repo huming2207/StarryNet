@@ -36,8 +36,8 @@ esp_err_t http_parser::parse_header(http_def::result &result_out)
     auto blank_line = http_trasct.find("\r\n\r\n", 0);
     auto header_part = http_trasct.substr(0, blank_line);
 
-    // Take substring of the body part - i.e. the string between the blank line to npos (the end)
-    result_out.body = http_trasct.substr(blank_line + 4);
+    // Set body bytes start index
+    result_out.body_idx = blank_line + 4;
 
     // Split string to vector of lines
     auto header_lines = split_str(header_part, "\r\n");

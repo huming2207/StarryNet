@@ -5,6 +5,7 @@ idf_component_register(
                 "ws_session.cpp"
                 "http_session.cpp"
                 "http_parser.cpp"
+                "include/base_session.hpp"
                 "include/socket_utils.hpp"
                 "include/ws_session.hpp"
                 "include/http_session.hpp"

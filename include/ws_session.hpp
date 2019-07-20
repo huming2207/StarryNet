@@ -10,6 +10,7 @@
 #include <asio.hpp>
 
 #include "../starrynet_config.hpp"
+#include "base_session.hpp"
 
 
 namespace snet
@@ -45,14 +46,14 @@ namespace snet
         };
     }
 
-    class ws_session : public std::enable_shared_from_this<ws_session>
+    class ws_session : public std::enable_shared_from_this<ws_session>, public base_session
     {
         public:
             ws_session(tcp::socket _sock,
                     std::function<void(int)> error_cb,
                     std::function<void(ws_def::request&, ws_session&)>);
 
-            void handle_read();
+            void handle_read() override;
 
         private:
 

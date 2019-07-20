@@ -49,11 +49,13 @@ namespace snet
     {
         public:
             ws_session(tcp::socket _sock,
-                    std::function<void(std::error_code)> error_cb,
+                    std::function<void(int)> error_cb,
                     std::function<void(ws_def::request&, ws_session&)>);
 
+            void handle_read();
+
         private:
-            void read_header();
+
             void read_length_16();
             void read_length_64();
             void read_mask_key();
@@ -61,7 +63,7 @@ namespace snet
 
         private:
             tcp::socket sock;
-            std::function<void(std::error_code)> error_handler_cb;
+            std::function<void(int)> error_handler_cb;
             std::function<void(ws_def::request&, ws_session&)> request_handler_cb;
             ws_def::request request{};
             uint8_t mask_key[4] = { 0 };

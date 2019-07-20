@@ -12,14 +12,14 @@ using namespace snet;
 
 
 ws_session::ws_session(tcp::socket _sock,
-        std::function<void(std::error_code)> error_cb,
+        std::function<void(esp_err_t)> error_cb,
         std::function<void(ws_def::request&, ws_session&)> request_cb) :
             sock(std::move(_sock)), error_handler_cb(std::move(error_cb)), request_handler_cb(std::move(request_cb))
 {
 
 }
 
-void ws_session::read_header()
+void ws_session::handle_read()
 {
     auto self(shared_from_this());
     ws_def::header header{};
@@ -28,7 +28,7 @@ void ws_session::read_header()
             [this, self, header](std::error_code err_code, size_t len)
             {
                 if(err_code) {
-                    error_handler_cb(err_code);
+                    error_handler_cb(err_code.value());
                     return;
                 }
 
@@ -64,7 +64,7 @@ void ws_session::read_length_16()
     uint16_t length = 0;
     std::error_code err_code;
     sock.read_some(asio::buffer(&length, sizeof(uint16_t)), err_code);
-    if(err_code) error_handler_cb(err_code);
+    if(err_code) error_handler_cb(err_code.value());
 }
 
 void ws_session::read_length_64()
@@ -74,7 +74,7 @@ void ws_session::read_length_64()
     uint64_t length = 0;
     std::error_code err_code;
     sock.read_some(asio::buffer(&length, sizeof(uint64_t)), err_code);
-    if(err_code) error_handler_cb(err_code);
+    if(err_code) error_handler_cb(err_code.value());
 }
 
 void ws_session::read_mask_key()
@@ -83,7 +83,7 @@ void ws_session::read_mask_key()
 
     std::error_code err_code;
     sock.read_some(asio::buffer(&mask_key, sizeof(mask_key)), err_code);
-    if(err_code) error_handler_cb(err_code);
+    if(err_code) error_handler_cb(err_code.value());
 }
 
 void ws_session::read_payload()
@@ -93,7 +93,7 @@ void ws_session::read_payload()
     std::error_code err_code;
     request.payload_ptr = new uint8_t[request.payload_len];
     sock.read_some(asio::buffer(&request.payload_ptr, (std::size_t)request.payload_len), err_code);
-    if(err_code) error_handler_cb(err_code);
+    if(err_code) error_handler_cb(err_code.value());
 
     // If masked, de-mask it
     // Ref: https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_servers#Reading_and_Unmasking_the_Data

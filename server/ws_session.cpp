@@ -8,8 +8,7 @@
 
 #define TAG "tcp_server"
 
-using namespace snet;
-
+using namespace snet::server;
 
 ws_session::ws_session(tcp::socket _sock,
         std::function<void(esp_err_t)> error_cb,

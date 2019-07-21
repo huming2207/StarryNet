@@ -7,7 +7,7 @@
 #include "base_session.hpp"
 
 
-namespace snet
+namespace snet::server
 {
     using namespace asio::ip;
 

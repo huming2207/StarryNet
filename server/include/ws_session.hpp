@@ -13,7 +13,7 @@
 #include "base_session.hpp"
 
 
-namespace snet
+namespace snet::server
 {
     using asio::ip::tcp;
     namespace ws_def

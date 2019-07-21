@@ -5,7 +5,7 @@
 #include <map>
 #include <string>
 
-namespace snet
+namespace snet::server
 {
     namespace http_def
     {

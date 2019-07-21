@@ -3,14 +3,16 @@
 
 #include "http_session.hpp"
 
+using namespace snet::server;
+using namespace snet::server::http_def;
 
-snet::http_session::http_session(tcp::socket _sock, std::function<void(esp_err_t)> error_cb) :
+http_session::http_session(tcp::socket _sock, std::function<void(esp_err_t)> error_cb) :
         sock(std::move(_sock)), error_handler_cb(std::move(error_cb))
 {
 
 }
 
-void snet::http_session::handle_read()
+void http_session::handle_read()
 {
     auto self(shared_from_this());
 
@@ -38,6 +40,5 @@ void snet::http_session::handle_read()
                 if((ret != ESP_OK) {
                     error_handler_cb(ret);
                 }
-
             });
 }

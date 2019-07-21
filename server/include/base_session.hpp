@@ -1,6 +1,6 @@
 #pragma once
 
-namespace snet
+namespace snet::server
 {
     class base_session
     {

@@ -2,8 +2,8 @@
 #include <esp_err.h>
 #include "http_parser.hpp"
 
-using namespace snet;
-using namespace snet::http_def;
+using namespace snet::server;
+using namespace snet::server::http_def;
 
 http_parser::http_parser(const std::string_view &_http_trasct)
 {

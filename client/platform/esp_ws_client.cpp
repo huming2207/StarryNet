@@ -89,4 +89,17 @@ int esp_ws_client::connect()
     return 0;
 }
 
+bool esp_ws_client::is_connected()
+{
+    return esp_websocket_client_is_connected(handle);
+}
 
+int esp_ws_client::send(const uint8_t *buf, size_t len, uint32_t timeout)
+{
+    return esp_websocket_client_send(handle, (const char *)buf, len, timeout);
+}
+
+int esp_ws_client::send(const std::vector<uint8_t>& buf, uint32_t timeout)
+{
+    return esp_websocket_client_send(handle, (const char *)buf.data(), buf.size(), timeout);
+}

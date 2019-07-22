@@ -26,6 +26,9 @@ namespace snet::client
                                     const std::function<void()>& disconnect_cb) override;
             void on_receive(const std::function<void(const char *, int)>& cb) override;
             void on_error(const std::function<void(int)>& cb) override;
+            bool is_connected();
+            int send(const uint8_t *buf, size_t len, uint32_t timeout);
+            int send(const std::vector<uint8_t>& buf, uint32_t timeout);
 
         private:
             esp_websocket_client_config_t config{};

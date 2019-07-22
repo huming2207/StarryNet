@@ -8,7 +8,13 @@ idf_component_register(
                 "server/include/ws_session.hpp"
                 "server/include/http_session.hpp"
                 "server/include/http_parser.hpp"
+
+                "client/ws_client.cpp"
+                "client/include/ws_client.hpp"
+
+                "client/platform/esp_ws_client.cpp"
+                "client/platform/include/esp_ws_client.hpp"
             INCLUDE_DIRS
-                "" "include"
-            REQUIRES mbedtls lwip esp_http_server asio
+                "" "server/include" "client/include" "client/platform/include"
+            REQUIRES mbedtls lwip esp_http_server asio esp_websocket_client
         )

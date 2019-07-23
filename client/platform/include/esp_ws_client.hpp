@@ -4,8 +4,6 @@
 #include <string>
 #include <functional>
 
-#include <freertos/FreeRTOS.h>
-#include <freertos/event_groups.h>
 #include <esp_websocket_client.h>
 
 #include <ws_client.hpp>
@@ -29,6 +27,8 @@ namespace snet::client
             bool is_connected() override;
             esp_ws_client& send(const uint8_t *buf, size_t len, uint32_t timeout) override;
             esp_ws_client& send(const std::vector<uint8_t>& buf, uint32_t timeout) override;
+            int close() override;
+            ~esp_ws_client();
 
         private:
             esp_websocket_client_config_t config{};

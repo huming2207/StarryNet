@@ -23,5 +23,6 @@ namespace snet::client
             virtual bool is_connected() = 0;
             virtual ws_client& send(const uint8_t *buf, size_t len, uint32_t timeout) = 0;
             virtual ws_client& send(const std::vector<uint8_t>& buf, uint32_t timeout) = 0;
+            virtual int close() = 0;
     };
 }

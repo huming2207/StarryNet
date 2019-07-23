@@ -115,3 +115,15 @@ esp_ws_client& esp_ws_client::send(const std::vector<uint8_t>& buf, uint32_t tim
     if(ret != ESP_OK) on_error_cb(ret);
     return *this;
 }
+
+int esp_ws_client::close()
+{
+    return esp_websocket_client_stop(handle);
+}
+
+esp_ws_client::~esp_ws_client()
+{
+    if(handle == nullptr) return;
+    ESP_ERROR_CHECK(esp_websocket_client_stop(handle));
+    ESP_ERROR_CHECK(esp_websocket_client_destroy(handle));
+}

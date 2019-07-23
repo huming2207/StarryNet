@@ -1,7 +1,5 @@
 #include "esp_ws_client.hpp"
 
-#define WS_BIT_CONNECTED (1U << 0U)
-
 using namespace snet::client;
 
 esp_ws_client::esp_ws_client(const std::string &uri)
@@ -55,12 +53,6 @@ esp_ws_client& esp_ws_client::on_error(const std::function<void(int)>& cb)
 
 esp_ws_client& esp_ws_client::connect()
 {
-    ws_event = xEventGroupCreate();
-    if(ws_event == nullptr) {
-        on_error_cb(ESP_ERR_INVALID_STATE);
-        return *this;
-    }
-
     handle = esp_websocket_client_init(&config);
     if(handle == nullptr) {
         on_error_cb(ESP_ERR_NO_MEM);
@@ -71,7 +63,6 @@ esp_ws_client& esp_ws_client::connect()
     esp_websocket_register_events(handle, WEBSOCKET_EVENT_CONNECTED,
           [](void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data) {
               auto client = static_cast<esp_ws_client*>(handler_args);
-              xEventGroupSetBits(client->ws_event, WS_BIT_CONNECTED);
               client->on_connect_cb();
           }
     , this);
@@ -79,7 +70,6 @@ esp_ws_client& esp_ws_client::connect()
     esp_websocket_register_events(handle, WEBSOCKET_EVENT_DISCONNECTED,
           [](void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data) {
               auto client = static_cast<esp_ws_client*>(handler_args);
-              xEventGroupClearBits(client->ws_event, WS_BIT_CONNECTED);
               client->on_disconnect_cb();
           }
     , this);

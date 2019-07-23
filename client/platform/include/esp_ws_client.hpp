@@ -33,6 +33,5 @@ namespace snet::client
         private:
             esp_websocket_client_config_t config{};
             esp_websocket_client_handle_t handle = nullptr;
-            EventGroupHandle_t ws_event;
     };
 }

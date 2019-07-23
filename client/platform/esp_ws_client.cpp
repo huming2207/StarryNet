@@ -16,40 +16,56 @@ esp_ws_client::esp_ws_client(const std::string &host, uint16_t port, const std::
     config.path = path.c_str();
 }
 
-void esp_ws_client::set_auth(const std::string &user_name, const std::string &password)
+esp_ws_client& esp_ws_client::set_auth(const std::string &user_name, const std::string &password)
 {
     config.username = user_name.c_str();
     config.password = password.c_str();
+    return *this;
 }
 
-void esp_ws_client::set_cert_pem(const std::string &pem)
+esp_ws_client& esp_ws_client::set_cert_pem(const std::string &pem)
 {
     config.cert_pem = pem.c_str();
+    return *this;
 }
 
-void esp_ws_client::on_connect_change(const std::function<void()>& connect_cb, const std::function<void()>& disconnect_cb)
+esp_ws_client& esp_ws_client::on_connect(const std::function<void()>& connect_cb)
 {
     on_connect_cb = connect_cb;
-    on_disconnect_cb = disconnect_cb;
+    return *this;
 }
 
-void esp_ws_client::on_receive(const std::function<void(const char *, int)>& cb)
+esp_ws_client& esp_ws_client::on_disconnect(const std::function<void()>& disconnect_cb)
+{
+    on_disconnect_cb = disconnect_cb;
+    return *this;
+}
+
+esp_ws_client& esp_ws_client::on_receive(const std::function<void(const char *, int)>& cb)
 {
     on_receive_cb = cb;
+    return *this;
 }
 
-void esp_ws_client::on_error(const std::function<void(int)>& cb)
+esp_ws_client& esp_ws_client::on_error(const std::function<void(int)>& cb)
 {
     on_error_cb = cb;
+    return *this;
 }
 
-int esp_ws_client::connect()
+esp_ws_client& esp_ws_client::connect()
 {
     ws_event = xEventGroupCreate();
-    if(ws_event == nullptr) return ESP_ERR_INVALID_STATE;
+    if(ws_event == nullptr) {
+        on_error_cb(ESP_ERR_INVALID_STATE);
+        return *this;
+    }
 
     handle = esp_websocket_client_init(&config);
-    if(handle == nullptr) return ESP_ERR_NO_MEM;
+    if(handle == nullptr) {
+        on_error_cb(ESP_ERR_NO_MEM);
+        return *this;
+    }
 
     // Register on_connect event
     esp_websocket_register_events(handle, WEBSOCKET_EVENT_CONNECTED,
@@ -85,8 +101,10 @@ int esp_ws_client::connect()
           }
     , this);
 
+    auto ret = esp_websocket_client_start(handle);
+    if(ret != ESP_OK) on_error_cb(ret);
 
-    return 0;
+    return *this;
 }
 
 bool esp_ws_client::is_connected()
@@ -94,12 +112,16 @@ bool esp_ws_client::is_connected()
     return esp_websocket_client_is_connected(handle);
 }
 
-int esp_ws_client::send(const uint8_t *buf, size_t len, uint32_t timeout)
+esp_ws_client& esp_ws_client::send(const uint8_t *buf, size_t len, uint32_t timeout)
 {
-    return esp_websocket_client_send(handle, (const char *)buf, len, timeout);
+    auto ret = esp_websocket_client_send(handle, (const char *)buf, len, timeout);
+    if(ret != ESP_OK) on_error_cb(ret);
+    return *this;
 }
 
-int esp_ws_client::send(const std::vector<uint8_t>& buf, uint32_t timeout)
+esp_ws_client& esp_ws_client::send(const std::vector<uint8_t>& buf, uint32_t timeout)
 {
-    return esp_websocket_client_send(handle, (const char *)buf.data(), buf.size(), timeout);
+    auto ret = esp_websocket_client_send(handle, (const char *)buf.data(), buf.size(), timeout);
+    if(ret != ESP_OK) on_error_cb(ret);
+    return *this;
 }

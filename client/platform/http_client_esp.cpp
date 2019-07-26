@@ -36,40 +36,35 @@ http_client_esp &http_client_esp::run_get()
     return *this;
 }
 
-http_client_esp &http_client_esp::run_post(const std::map<std::string, std::string>& field)
+http_client_esp& http_client_esp::run_post()
 {
-
-
+    auto ret = esp_http_client_set_method(client, HTTP_METHOD_POST);
+    ret = ret ?: esp_http_client_perform(client);
+    if(ret != ESP_OK) on_error_cb(ret);
     return *this;
 }
 
-http_client_esp& http_client_esp::run_put(const std::map<std::string, std::string>& field)
+http_client_esp& http_client_esp::run_put()
 {
+    auto ret = esp_http_client_set_method(client, HTTP_METHOD_PUT);
+    ret = ret ?: esp_http_client_perform(client);
+    if(ret != ESP_OK) on_error_cb(ret);
     return *this;
 }
 
-http_client_esp& http_client_esp::run_patch(const std::map<std::string, std::string>& field)
+http_client_esp& http_client_esp::run_patch()
 {
-    return *this;
-}
-
-http_client_esp& http_client_esp::run_post(const std::vector<std::tuple<std::string, std::string>> &field)
-{
-    return *this;
-}
-
-http_client_esp& http_client_esp::run_put(const std::vector<std::tuple<std::string, std::string>> &field)
-{
-    return *this;
-}
-
-http_client_esp& http_client_esp::run_patch(const std::vector<std::tuple<std::string, std::string>> &field)
-{
+    auto ret = esp_http_client_set_method(client, HTTP_METHOD_PATCH);
+    ret = ret ?: esp_http_client_perform(client);
+    if(ret != ESP_OK) on_error_cb(ret);
     return *this;
 }
 
 http_client_esp& http_client_esp::run_delete()
 {
+    auto ret = esp_http_client_set_method(client, HTTP_METHOD_DELETE);
+    ret = ret ?: esp_http_client_perform(client);
+    if(ret != ESP_OK) on_error_cb(ret);
     return *this;
 }
 
@@ -111,5 +106,28 @@ std::string http_client_esp::make_field(const std::vector<std::tuple<std::string
     field_str.pop_back();
 
     return field_str;
+}
+
+http_client_esp &http_client_esp::set_post_field(const std::vector<std::tuple<std::string, std::string>> &field)
+{
+    auto field_str = make_field(field);
+    auto ret = esp_http_client_set_post_field(client, field_str.c_str(), field_str.size());
+    if(ret != ESP_OK) on_error_cb(ret);
+    return *this;
+}
+
+http_client_esp &http_client_esp::set_post_field(const std::map<std::string, std::string> &field)
+{
+    auto field_str = make_field(field);
+    auto ret = esp_http_client_set_post_field(client, field_str.c_str(), field_str.size());
+    if(ret != ESP_OK) on_error_cb(ret);
+    return *this;
+}
+
+http_client_esp &http_client_esp::set_post_field(const std::string &field)
+{
+    auto ret = esp_http_client_set_post_field(client, field.c_str(), field.size());
+    if(ret != ESP_OK) on_error_cb(ret);
+    return *this;
 }
 

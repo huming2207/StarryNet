@@ -81,12 +81,6 @@ http_client_esp& http_client_esp::run_delete()
     return *this;
 }
 
-http_client_esp& http_client_esp::on_error(const std::function<int(int)>& cb)
-{
-    on_error_cb = cb;
-    return *this;
-}
-
 std::string http_client_esp::make_field(const std::map<std::string, std::string> &field)
 {
     // Make it to a post field string
@@ -161,33 +155,45 @@ int http_client_esp::get_status_code()
     return esp_http_client_get_status_code(client);
 }
 
+http_client_esp& http_client_esp::on_error(const std::function<int(int)>& cb)
+{
+    on_error_cb = cb;
+    return *this;
+}
+
 http_client_esp &http_client_esp::on_sent(const std::function<int()> &cb)
 {
+    on_sent_cb = cb;
     return *this;
 }
 
 http_client_esp &http_client_esp::on_received(const std::function<int(const char *, int)> &cb)
 {
+    on_received_cb = cb;
     return *this;
 }
 
 http_client_esp &http_client_esp::on_finish(const std::function<int()> &cb)
 {
+    on_finish_cb = cb;
     return *this;
 }
 
 http_client_esp &http_client_esp::on_sock_connect(const std::function<int()> &cb)
 {
+    on_socket_connect_cb = cb;
     return *this;
 }
 
 http_client_esp &http_client_esp::on_sock_close(const std::function<int()> &cb)
 {
+    on_socket_close_cb = cb;
     return *this;
 }
 
 http_client_esp &http_client_esp::on_header(const std::function<int(const std::string &key, const std::string &val)> &cb)
 {
+    on_header_cb = cb;
     return *this;
 }
 

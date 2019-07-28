@@ -10,6 +10,7 @@ idf_component_register(
                 "server/include/http_parser.hpp"
 
                 "client/ws_client.cpp"
+                "client/http_client.cpp"
                 "client/include/ws_client.hpp"
                 "client/include/http_client.hpp"
 

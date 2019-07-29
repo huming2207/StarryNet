@@ -5,7 +5,7 @@
 #include <map>
 #include <string>
 
-namespace snet
+namespace snet::server
 {
     namespace http_def
     {
@@ -32,7 +32,7 @@ namespace snet
             std::string_view endpoint;
             version version;
             bool ws_upgrade;
-            std::string_view body;
+            size_t body_idx;
         };
     }
 

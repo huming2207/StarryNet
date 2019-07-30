@@ -4,7 +4,7 @@
 #include <esp_log.h>
 
 #include "ws_session.hpp"
-#include "starrynet_config.hpp"
+#include "../starrynet_config.hpp"
 
 #define TAG "tcp_server"
 
@@ -18,7 +18,7 @@ ws_session::ws_session(tcp::socket _sock,
 
 }
 
-void ws_session::handle_read()
+void ws_session::begin_read()
 {
     auto self(shared_from_this());
     ws_def::header header{};

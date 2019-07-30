@@ -5,6 +5,6 @@ namespace snet::server
     class base_session
     {
         public:
-            virtual void handle_read() = 0;
+            virtual void begin_read() = 0;
     };
 }

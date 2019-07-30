@@ -53,7 +53,7 @@ namespace snet::server
                     std::function<void(int)> error_cb,
                     std::function<void(ws_def::request&, ws_session&)>);
 
-            void handle_read() override;
+            void begin_read() override;
 
         private:
 

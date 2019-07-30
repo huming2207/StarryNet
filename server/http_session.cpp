@@ -1,4 +1,5 @@
 #include <utility>
+#include <string_view>
 #include <http_parser.hpp>
 
 #include "http_session.hpp"
@@ -12,33 +13,26 @@ http_session::http_session(tcp::socket _sock, std::function<void(esp_err_t)> err
 
 }
 
-void http_session::handle_read()
+void http_session::begin_read()
 {
     auto self(shared_from_this());
 
-    sock.async_read_some(asio::buffer(http_buf, 256),
-            [this, self](std::error_code err_code, size_t len)
-            {
-                if(err_code) {
-                    error_handler_cb(err_code.value());
-                    return;
-                }
+    std::vector<char> header_buf;
+    asio::async_read_until(sock, header_buf, "\r\n\r\n",
+                           [this, self, &header_buf](std::error_code err_code, size_t len)
+           {
+               if(err_code) {
+                   error_handler_cb(err_code.value());
+                   return;
+               }
 
-                // Header is longer than 256 bytes
-                if(http_buf[255] != '\0') {
-                    error_handler_cb(ESP_ERR_INVALID_SIZE);
-                    return;
-                }
+               http_parser parser(header_buf.data(), header_buf.size());
+               http_def::result result{};
+               auto ret = parser.parse_header(result);
+               if((ret != ESP_OK) {
+                   error_handler_cb(ret);
+               }
 
-                // Parse header
-                std::string_view hdr_view(http_buf);
-                http_parser parser(hdr_view);
+           });
 
-                http_def::result result{};
-                auto ret = parser.parse_header(result);
-
-                if((ret != ESP_OK) {
-                    error_handler_cb(ret);
-                }
-            });
 }

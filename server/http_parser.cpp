@@ -64,15 +64,6 @@ esp_err_t http_parser::parse_header(http_def::result &result_out)
 
     if(headers.empty()) return ESP_ERR_INVALID_SIZE;
     if(headers["Upgrade"] == "websocket" || headers["upgrade"] == "websocket") result_out.ws_upgrade = true;
-
-    // Try parse content length
-    auto content_len = headers.find("Content-Length");
-    if(content_len != headers.end()) {
-        result_out.content_len = std::strtol(std::string(content_len->second).c_str(), nullptr, 10);
-    } else {
-        result_out.content_len = -1;
-    }
-
     result_out.headers = std::move(headers);
 
     return ESP_OK;

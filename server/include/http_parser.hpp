@@ -31,7 +31,6 @@ namespace snet::server
             method method;
             std::string_view endpoint;
             version version;
-            ssize_t content_len;
             bool ws_upgrade;
             size_t body_idx;
         };

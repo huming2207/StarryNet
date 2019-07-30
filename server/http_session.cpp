@@ -17,22 +17,27 @@ void http_session::begin_read()
 {
     auto self(shared_from_this());
 
-    std::vector<char> header_buf;
-    asio::async_read_until(sock, header_buf, "\r\n\r\n",
-                           [this, self, &header_buf](std::error_code err_code, size_t len)
+    asio::async_read_until(sock, buffer, "\r\n\r\n",
+           [this, self](std::error_code err_code, size_t len)
            {
                if(err_code) {
                    error_handler_cb(err_code.value());
                    return;
                }
 
-               http_parser parser(header_buf.data(), header_buf.size());
+               http_parser parser(buffer.data(), buffer.size());
                http_def::result result{};
                auto ret = parser.parse_header(result);
                if((ret != ESP_OK) {
                    error_handler_cb(ret);
                }
 
+
            });
+
+}
+
+void http_session::read_body()
+{
 
 }

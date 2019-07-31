@@ -75,8 +75,11 @@ esp_err_t http_parser::parse_request(http_def::req_header &result_out)
     // Try parse the body length
     if(result_out.body_pos != std::string::npos) {
         auto content_len = headers.find("Content-Length");
-        if(content_len != headers.end())
+        if(content_len != headers.end()) {
             result_out.body_len = std::strtol(content_len->second.c_str(), nullptr, 10);
+        } else { // Chunked request??
+            result_out.body_len =  http_trasct.size() - result_out.body_pos;
+        }
     }
 
     // ...Finally, move the header maps to the result

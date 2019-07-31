@@ -15,10 +15,10 @@ http_parser::http_parser(const char *str, size_t len)
     http_trasct = std::string_view(str, len);
 }
 
-std::vector<std::string_view> http_parser::split_str(const std::string_view& text, const std::string& delims)
+std::vector<std::string> http_parser::split_str(const std::string& text, const std::string& delims)
 {
     // Ref: https://stackoverflow.com/a/7408245
-    std::vector<std::string_view> tokens;
+    std::vector<std::string> tokens;
     std::size_t start = text.find_first_not_of(delims), end = 0;
 
     while((end = text.find_first_of(delims, start)) != std::string::npos) {
@@ -53,7 +53,7 @@ esp_err_t http_parser::parse_header(http_def::result &result_out)
     header_lines.erase(header_lines.begin());
 
     // The rest of the header will be kept in the map
-    std::map<std::string_view, std::string_view> headers;
+    std::map<std::string, std::string> headers;
     for(auto& curr_item : header_lines) {
         auto colon_idx = curr_item.find(": ");
         auto item_key = curr_item.substr(0, colon_idx);
@@ -71,13 +71,13 @@ esp_err_t http_parser::parse_header(http_def::result &result_out)
 
 
 
-const std::map<std::string_view, version> http_parser::version_map  = {
+const std::map<std::string, version> http_parser::version_map  = {
         { "HTTP/1.0", HTTP_1_0 },
         { "HTTP/1.1", HTTP_1_1 },
         { "HTTP/2", HTTP_2 }
 };
 
-const std::map<std::string_view, method> http_parser::method_map = {
+const std::map<std::string, method> http_parser::method_map = {
         { "GET", HTTP_GET },
         { "POST", HTTP_POST },
         { "DELETE", HTTP_DELETE },

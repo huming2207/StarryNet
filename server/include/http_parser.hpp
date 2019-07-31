@@ -27,7 +27,7 @@ namespace snet::server
 
         struct result
         {
-            std::map<std::string_view, std::string_view> headers;
+            std::map<std::string, std::string> headers;
             method method;
             std::string_view endpoint;
             version version;
@@ -45,10 +45,10 @@ namespace snet::server
             esp_err_t parse_header(http_def::result &result_out);
 
         private:
-            std::vector<std::string_view> split_str(const std::string_view & text, const std::string& delims);
-            std::string_view http_trasct;
-            static const std::map<std::string_view, http_def::method> method_map;
-            static const std::map<std::string_view, http_def::version> version_map;
+            static std::vector<std::string> split_str(const std::string & text, const std::string& delims);
+            std::string http_trasct;
+            static const std::map<std::string, http_def::method> method_map;
+            static const std::map<std::string, http_def::version> version_map;
     };
 
 }

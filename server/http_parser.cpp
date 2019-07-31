@@ -5,7 +5,7 @@
 using namespace snet::server;
 using namespace snet::server::http_def;
 
-http_parser::http_parser(const std::string_view &_http_trasct)
+http_parser::http_parser(const std::string &_http_trasct)
 {
     http_trasct = _http_trasct;
 }
@@ -30,7 +30,7 @@ std::vector<std::string> http_parser::split_str(const std::string& text, const s
     return tokens;
 }
 
-esp_err_t http_parser::parse_header(http_def::result &result_out)
+esp_err_t http_parser::parse_request(http_def::result &result_out)
 {
     // Take substring of the header part only - i.e. the string between start to the blank line
     auto blank_line = http_trasct.find("\r\n\r\n", 0);

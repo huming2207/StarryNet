@@ -40,9 +40,9 @@ namespace snet::server
     class http_parser
     {
         public:
-            explicit http_parser(const std::string_view &_http_trasct);
+            explicit http_parser(const std::string &_http_trasct);
             http_parser(const char *str, size_t len);
-            esp_err_t parse_header(http_def::result &result_out);
+            esp_err_t parse_request(http_def::result &result_out);
 
         private:
             static std::vector<std::string> split_str(const std::string & text, const std::string& delims);

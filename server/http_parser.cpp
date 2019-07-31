@@ -30,14 +30,19 @@ std::vector<std::string> http_parser::split_str(const std::string& text, const s
     return tokens;
 }
 
-esp_err_t http_parser::parse_request(http_def::result &result_out)
+esp_err_t http_parser::parse_request(http_def::req_header &result_out)
 {
     // Take substring of the header part only - i.e. the string between start to the blank line
     auto blank_line = http_trasct.find("\r\n\r\n", 0);
     auto header_part = http_trasct.substr(0, blank_line);
 
-    // Set body bytes start index
-    result_out.body_idx = blank_line + 4;
+    // Set body bytes start index, if there is a body
+    auto body_pos = blank_line + 4;
+    if(body_pos < http_trasct.size()) {
+        result_out.body_pos = body_pos;
+    } else {
+        result_out.body_pos = std::string::npos;
+    }
 
     // Split string to vector of lines
     auto header_lines = split_str(header_part, "\r\n");
@@ -62,8 +67,19 @@ esp_err_t http_parser::parse_request(http_def::result &result_out)
         headers[item_key] = item_val; // Add into header map
     }
 
+    // Parse WebSocket requests
     if(headers.empty()) return ESP_ERR_INVALID_SIZE;
     if(headers["Upgrade"] == "websocket" || headers["upgrade"] == "websocket") result_out.ws_upgrade = true;
+
+
+    // Try parse the body length
+    if(result_out.body_pos != std::string::npos) {
+        auto content_len = headers.find("Content-Length");
+        if(content_len != headers.end())
+            result_out.body_len = std::strtol(content_len->second.c_str(), nullptr, 10);
+    }
+
+    // ...Finally, move the header maps to the result
     result_out.headers = std::move(headers);
 
     return ESP_OK;

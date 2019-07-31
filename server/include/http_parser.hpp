@@ -25,14 +25,15 @@ namespace snet::server
             HTTP_2 = 2
         };
 
-        struct result
+        struct req_header
         {
             std::map<std::string, std::string> headers;
             method method;
             std::string_view endpoint;
             version version;
             bool ws_upgrade;
-            size_t body_idx;
+            ssize_t body_pos;
+            ssize_t body_len;
         };
     }
 
@@ -42,7 +43,7 @@ namespace snet::server
         public:
             explicit http_parser(const std::string &_http_trasct);
             http_parser(const char *str, size_t len);
-            esp_err_t parse_request(http_def::result &result_out);
+            esp_err_t parse_request(http_def::req_header &result_out);
 
         private:
             static std::vector<std::string> split_str(const std::string & text, const std::string& delims);

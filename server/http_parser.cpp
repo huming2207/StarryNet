@@ -38,10 +38,9 @@ esp_err_t http_parser::parse_request(http_def::req_header &result_out)
 
     // Set body bytes start index, if there is a body
     auto body_pos = blank_line + 4;
+    const char *body_ptr = http_trasct.c_str() + body_pos;
     if(body_pos < http_trasct.size()) {
-        result_out.body_pos = body_pos;
-    } else {
-        result_out.body_pos = std::string::npos;
+        result_out.body_part = std::vector<uint8_t>(body_ptr, body_ptr + (http_trasct.size() - body_pos));
     }
 
     // Split string to vector of lines
@@ -73,12 +72,12 @@ esp_err_t http_parser::parse_request(http_def::req_header &result_out)
 
 
     // Try parse the body length
-    if(result_out.body_pos != std::string::npos) {
+    if(!result_out.body_part.empty()) {
         auto content_len = headers.find("Content-Length");
         if(content_len != headers.end()) {
             result_out.body_len = std::strtol(content_len->second.c_str(), nullptr, 10);
         } else { // Chunked request??
-            result_out.body_len =  http_trasct.size() - result_out.body_pos;
+            result_out.body_len = result_out.body_part.size();
         }
     }
 

@@ -32,7 +32,7 @@ namespace snet::server
             std::string_view endpoint;
             version version;
             bool ws_upgrade;
-            ssize_t body_pos;
+            std::vector<uint8_t> body_part;
             ssize_t body_len;
         };
     }

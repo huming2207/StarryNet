@@ -17,9 +17,10 @@ namespace snet::server
             http_session(tcp::socket _sock, std::function<void(int)> err_cb);
             void begin_read() override;
         private:
-            void read_body();
+            void read_req_body(http_def::req_header &header);
             tcp::socket sock;
-            std::vector<char> buffer;
+            asio::streambuf header_buffer;
+            std::vector<uint8_t> content_buffer;
             std::function<void(int)> error_handler_cb;
 
     };

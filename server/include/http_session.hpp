@@ -20,7 +20,7 @@ namespace snet::server
             void read_req_body(http_def::req_header &header);
             tcp::socket sock;
             asio::streambuf header_buffer;
-            std::vector<uint8_t> content_buffer;
+            asio::streambuf content_buffer;
             std::function<void(int)> error_handler_cb;
 
     };

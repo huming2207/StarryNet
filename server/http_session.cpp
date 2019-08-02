@@ -34,9 +34,6 @@ void http_session::begin_read()
                    error_handler_cb(ret);
                }
 
-               content_buffer.resize()
-               header_buffer.clear();
-
                read_req_body(req);
            });
 
@@ -45,9 +42,9 @@ void http_session::begin_read()
 void http_session::read_req_body(http_def::req_header &header)
 {
     auto self(shared_from_this());
-
+    asio::buffer_copy(content_buffer, header.body_part);
     sock.async_read_some(content_buffer,
-        [this, self, &header](std::error_code err_code, size_t len) {
-
+        [this, self, &header](std::error_code &err_code, size_t len) {
+            
         });
 }

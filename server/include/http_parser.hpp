@@ -9,7 +9,7 @@ namespace snet::server
 {
     namespace http_def
     {
-        enum method
+        enum http_method
         {
             HTTP_GET = 0,
             HTTP_POST = 1,
@@ -18,7 +18,7 @@ namespace snet::server
             HTTP_PATCH = 4
         };
 
-        enum version
+        enum http_version
         {
             HTTP_1_0 = 0,
             HTTP_1_1 = 1,
@@ -28,9 +28,9 @@ namespace snet::server
         struct req_header
         {
             std::map<std::string, std::string> headers;
-            method method;
+            http_method method;
             std::string_view endpoint;
-            version version;
+            http_version version;
             bool ws_upgrade;
             std::vector<uint8_t> body_part;
             ssize_t body_len;
@@ -48,8 +48,8 @@ namespace snet::server
         private:
             static std::vector<std::string> split_str(const std::string & text, const std::string& delims);
             std::string http_trasct;
-            static const std::map<std::string, http_def::method> method_map;
-            static const std::map<std::string, http_def::version> version_map;
+            static const std::map<std::string, http_def::http_method> method_map;
+            static const std::map<std::string, http_def::http_version> version_map;
     };
 
 }

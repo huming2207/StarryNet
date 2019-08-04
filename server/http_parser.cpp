@@ -89,13 +89,13 @@ esp_err_t http_parser::parse_request(http_def::req_header &result_out)
 
 
 
-const std::map<std::string, version> http_parser::version_map  = {
+const std::map<std::string, http_version> http_parser::version_map  = {
         { "HTTP/1.0", HTTP_1_0 },
         { "HTTP/1.1", HTTP_1_1 },
         { "HTTP/2", HTTP_2 }
 };
 
-const std::map<std::string, method> http_parser::method_map = {
+const std::map<std::string, http_method> http_parser::method_map = {
         { "GET", HTTP_GET },
         { "POST", HTTP_POST },
         { "DELETE", HTTP_DELETE },

@@ -18,7 +18,7 @@ void http_session::begin_read()
     auto self(shared_from_this());
 
     asio::async_read_until(sock, header_buffer, "\r\n\r\n",
-           [this, self](std::error_code &err_code, size_t len)
+           [this, self](std::error_code err_code, size_t len)
            {
                if(err_code) {
                    error_handler_cb(err_code.value());
@@ -30,7 +30,7 @@ void http_session::begin_read()
                http_parser parser(header_str);
                http_def::req_header req{};
                auto ret = parser.parse_request(req);
-               if((ret != ESP_OK) {
+               if(ret != ESP_OK) {
                    error_handler_cb(ret);
                }
 
@@ -44,7 +44,7 @@ void http_session::read_req_body(http_def::req_header &header)
     auto self(shared_from_this());
     asio::buffer_copy(content_buffer, header.body_part);
     sock.async_read_some(content_buffer,
-        [this, self, &header](std::error_code &err_code, size_t len) {
+        [this, self, &header](std::error_code err_code, size_t len) {
             
         });
 }
